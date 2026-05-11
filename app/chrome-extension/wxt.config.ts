@@ -123,6 +123,24 @@ export default defineConfig({
   },
   vite: (env) => ({
     plugins: [
+      {
+        name: 'copy-extension-static-assets-before-summary',
+        apply: 'build',
+        async closeBundle() {
+          const fs = await import('fs/promises');
+          const outDir = resolve(process.cwd(), '.output/chrome-mv3');
+          const copyTargets = ['inject-scripts', 'workers', '_locales'];
+
+          await Promise.all(
+            copyTargets.map(async (target) => {
+              const src = resolve(process.cwd(), target);
+              const dest = resolve(outDir, target);
+              await fs.mkdir(dest, { recursive: true });
+              await fs.cp(src, dest, { recursive: true, force: true });
+            }),
+          );
+        },
+      },
       // TailwindCSS v4 Vite plugin – no PostCSS config required
       tailwindcss(),
       // Auto-register SVG icons as Vue components; all icons are bundled locally
@@ -169,4 +187,34 @@ export default defineConfig({
       minify: false,
     },
   }),
+  hooks: {
+    'build:publicAssets': async (_, files) => {
+      const fs = await import('fs/promises');
+      const staticRoots = ['inject-scripts', 'workers', '_locales'];
+
+      for (const root of staticRoots) {
+        const rootAbs = resolve(process.cwd(), root);
+        const walk = async (dir: string): Promise<string[]> => {
+          const entries = await fs.readdir(dir, { withFileTypes: true });
+          const nested = await Promise.all(
+            entries.map(async (entry) => {
+              const abs = resolve(dir, entry.name);
+              if (entry.isDirectory()) return walk(abs);
+              if (!entry.isFile()) return [];
+              return [abs];
+            }),
+          );
+          return nested.flat();
+        };
+
+        const assets = await walk(rootAbs);
+        for (const absoluteSrc of assets) {
+          files.push({
+            absoluteSrc,
+            relativeDest: `${root}/${absoluteSrc.slice(rootAbs.length + 1)}`,
+          });
+        }
+      }
+    },
+  },
 });
