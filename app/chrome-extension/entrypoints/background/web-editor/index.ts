@@ -1499,7 +1499,7 @@ export function initWebEditorListeners(): void {
             return sendResponse({
               success: false,
               error:
-                'No Agent project selected. Open Side Panel → 智能助手 and select/create a project first.',
+                'No Agent project selected. Open Side Panel → AI Assistant and select/create a project first.',
             });
           }
 
