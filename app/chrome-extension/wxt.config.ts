@@ -1,6 +1,5 @@
 import { defineConfig } from 'wxt';
 import tailwindcss from '@tailwindcss/vite';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import Icons from 'unplugin-icons/vite';
@@ -149,31 +148,6 @@ export default defineConfig({
         resolvers: [IconsResolver({ prefix: 'i', enabledCollections: ['lucide', 'mdi', 'ri'] })],
       }) as any,
       Icons({ compiler: 'vue3', autoInstall: false }) as any,
-      // Ensure static assets are available as early as possible to avoid race conditions in dev
-      // Copy workers/_locales/inject-scripts into the build output before other steps
-      viteStaticCopy({
-        targets: [
-          {
-            src: 'inject-scripts/*.js',
-            dest: 'inject-scripts',
-          },
-          {
-            src: ['workers/*'],
-            dest: 'workers',
-          },
-          {
-            src: '_locales/**/*',
-            dest: '_locales',
-          },
-        ],
-        // Use writeBundle so outDir exists for dev and prod
-        hook: 'writeBundle',
-        // Enable watch so changes to these files are reflected during dev
-        watch: {
-          // Use default patterns inferred from targets; explicit true enables watching
-          // Vite plugin will watch src patterns and re-copy on change
-        } as any,
-      }) as any,
     ],
     build: {
       // 我们的构建产物需要兼容到es6
@@ -192,27 +166,25 @@ export default defineConfig({
       const fs = await import('fs/promises');
       const staticRoots = ['inject-scripts', 'workers', '_locales'];
 
+      const walk = async (dir: string): Promise<string[]> => {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        const nested = await Promise.all(
+          entries.map(async (entry) => {
+            const abs = resolve(dir, entry.name);
+            if (entry.isDirectory()) return walk(abs);
+            if (!entry.isFile()) return [];
+            return [abs];
+          }),
+        );
+        return nested.flat();
+      };
+
       for (const root of staticRoots) {
         const rootAbs = resolve(process.cwd(), root);
-        const walk = async (dir: string): Promise<string[]> => {
-          const entries = await fs.readdir(dir, { withFileTypes: true });
-          const nested = await Promise.all(
-            entries.map(async (entry) => {
-              const abs = resolve(dir, entry.name);
-              if (entry.isDirectory()) return walk(abs);
-              if (!entry.isFile()) return [];
-              return [abs];
-            }),
-          );
-          return nested.flat();
-        };
-
         const assets = await walk(rootAbs);
         for (const absoluteSrc of assets) {
-          files.push({
-            absoluteSrc,
-            relativeDest: `${root}/${absoluteSrc.slice(rootAbs.length + 1)}`,
-          });
+          const relativeDest = `${root}/${absoluteSrc.slice(rootAbs.length + 1)}`;
+          files.push({ absoluteSrc, relativeDest });
         }
       }
     },
