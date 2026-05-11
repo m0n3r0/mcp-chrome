@@ -5,7 +5,13 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import nativeMessagingHostInstance from '../native-messaging-host';
-import { NativeMessageType, TOOL_SCHEMAS } from 'chrome-mcp-shared';
+import {
+  NativeMessageType,
+  TOOL_SCHEMAS,
+  filterAllowedToolSchemas,
+  getDisabledToolMessage,
+  isAllowedMcpTool,
+} from 'chrome-mcp-shared';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 async function listDynamicFlowTools(): Promise<Tool[]> {
@@ -68,10 +74,9 @@ async function listDynamicFlowTools(): Promise<Tool[]> {
 
 export const setupTools = (server: Server) => {
   // List tools handler
-  server.setRequestHandler(ListToolsRequestSchema, async () => {
-    const dynamicTools = await listDynamicFlowTools();
-    return { tools: [...TOOL_SCHEMAS, ...dynamicTools] };
-  });
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    tools: filterAllowedToolSchemas(TOOL_SCHEMAS),
+  }));
 
   // Call tool handler
   server.setRequestHandler(CallToolRequestSchema, async (request) =>
@@ -81,6 +86,13 @@ export const setupTools = (server: Server) => {
 
 const handleToolCall = async (name: string, args: any): Promise<CallToolResult> => {
   try {
+    if (!isAllowedMcpTool(name)) {
+      return {
+        content: [{ type: 'text', text: getDisabledToolMessage(name) }],
+        isError: true,
+      };
+    }
+
     // If calling a dynamic flow tool (name starts with flow.), proxy to common flow-run tool
     if (name && name.startsWith('flow.')) {
       // We need to resolve flow by slug to ID

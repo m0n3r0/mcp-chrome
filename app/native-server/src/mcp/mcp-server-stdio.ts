@@ -9,7 +9,12 @@ import {
   ListResourcesRequestSchema,
   ListPromptsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { TOOL_SCHEMAS } from 'chrome-mcp-shared';
+import {
+  TOOL_SCHEMAS,
+  filterAllowedToolSchemas,
+  getDisabledToolMessage,
+  isAllowedMcpTool,
+} from 'chrome-mcp-shared';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { AUTH_HEADER, AUTH_SCHEME, AUTH_TOKEN_ENV } from '../server/auth';
@@ -85,7 +90,9 @@ export const ensureMcpClient = async () => {
 
 export const setupTools = (server: Server) => {
   // List tools handler
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOL_SCHEMAS }));
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    tools: filterAllowedToolSchemas(TOOL_SCHEMAS),
+  }));
 
   // Call tool handler
   server.setRequestHandler(CallToolRequestSchema, async (request) =>
@@ -101,6 +108,13 @@ export const setupTools = (server: Server) => {
 
 const handleToolCall = async (name: string, args: any): Promise<CallToolResult> => {
   try {
+    if (!isAllowedMcpTool(name)) {
+      return {
+        content: [{ type: 'text', text: getDisabledToolMessage(name) }],
+        isError: true,
+      };
+    }
+
     const client = await ensureMcpClient();
     if (!client) {
       throw new Error('Failed to connect to MCP server');

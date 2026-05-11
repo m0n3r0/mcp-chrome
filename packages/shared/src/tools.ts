@@ -46,6 +46,32 @@ export const TOOL_NAMES = {
   },
 };
 
+export const MINIMAL_MCP_TOOL_NAMES = new Set<string>([
+  TOOL_NAMES.BROWSER.GET_WINDOWS_AND_TABS,
+  TOOL_NAMES.BROWSER.NAVIGATE,
+  TOOL_NAMES.BROWSER.READ_PAGE,
+  TOOL_NAMES.BROWSER.WEB_FETCHER,
+  TOOL_NAMES.BROWSER.COMPUTER,
+  TOOL_NAMES.BROWSER.SWITCH_TAB,
+  TOOL_NAMES.BROWSER.HANDLE_DIALOG,
+  TOOL_NAMES.BROWSER.JAVASCRIPT,
+]);
+
+export function isAllowedMcpTool(name: string): boolean {
+  return MINIMAL_MCP_TOOL_NAMES.has(name);
+}
+
+export function filterAllowedToolSchemas<T extends { name: string }>(tools: T[]): T[] {
+  return tools.filter((tool) => isAllowedMcpTool(tool.name));
+}
+
+export const MINIMAL_TOOL_DISABLED_MESSAGE =
+  'This tool is disabled by the minimal Chrome MCP tool profile';
+
+export function getDisabledToolMessage(name: string): string {
+  return `Tool ${name} is disabled by the minimal Chrome MCP tool profile`;
+}
+
 export const TOOL_SCHEMAS: Tool[] = [
   {
     name: TOOL_NAMES.BROWSER.GET_WINDOWS_AND_TABS,
