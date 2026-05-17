@@ -6,17 +6,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "wxt",
-    "dev:firefox": "wxt -b firefox",
     "build": "wxt build",
-    "build:firefox": "wxt build -b firefox",
-    "zip": "wxt zip",
-    "zip:firefox": "wxt zip -b firefox",
-    "compile": "vue-tsc --noEmit",
-    "lint": "npx eslint .",
-    "lint:fix": "npx eslint . --fix",
-    "format": "npx prettier --write .",
-    "format:check": "npx prettier --check ."
+    "compile": "vue-tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",

@@ -23,29 +23,27 @@
 ```bash
 git clone https://github.com/your-username/fastify-chrome-native.git
 cd fastify-chrome-native
-npm install
+pnpm install --ignore-scripts --frozen-lockfile
 ```
 
 ### 开发
 
-1. 本地构建注册native server
+1. 构建 native server
 
 ```bash
-cd app/native-server
-npm run dev
+pnpm --filter mcp-chrome-bridge build
 ```
 
-2. 启动chrome extension
+2. 构建 chrome extension
 
 ```bash
-cd app/chrome-extension
-npm run dev
+pnpm --filter chrome-mcp-server build
 ```
 
 ### 构建
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 ### 注册Native Messaging主机
@@ -69,10 +67,10 @@ mcp-chrome-bridge register --browser chromium
 mcp-chrome-bridge register --browser all
 ```
 
-#### 全局安装（会自动注册检测到的浏览器）
+#### 全局安装（不会自动注册；安装后请显式注册或配置 Windows Native Messaging manifest）
 
 ```bash
-npm i -g mcp-chrome-bridge
+npm install -g /path/to/mcp-chrome/app/native-server --ignore-scripts
 ```
 
 #### 浏览器支持
