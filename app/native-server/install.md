@@ -8,10 +8,9 @@ Chrome MCP Bridge 的安装和注册流程如下：
 
 ```
 npm install -g mcp-chrome-bridge
-└─ postinstall.js
-   ├─ 复制可执行文件到 npm_prefix/bin   ← 总是可写（用户或root权限）
+└─ 用户显式运行 mcp-chrome-bridge register
    ├─ 尝试用户级别注册                  ← 无需sudo，大多数情况下成功
-   └─ 如果失败 ➜ 提示用户运行 mcp-chrome-bridge register --system
+   └─ 如果失败 ➜ 用户显式运行 mcp-chrome-bridge register --system
       └─ 需要手动使用管理员权限运行
 ```
 
@@ -25,7 +24,7 @@ npm install -g mcp-chrome-bridge
 npm install -g mcp-chrome-bridge
 ```
 
-安装完成后，系统会自动尝试在用户目录中注册 Native Messaging 主机。这不需要管理员权限，是推荐的安装方式。
+安装完成后，请显式运行 `mcp-chrome-bridge register` 注册 Native Messaging 主机。此加固分支不会在安装时自动执行注册脚本。
 
 ### 2. 用户级别注册
 

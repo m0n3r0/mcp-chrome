@@ -127,7 +127,7 @@ export async function getMainPath(): Promise<string> {
 /**
  * Write Node.js executable path to node_path.txt for run_host scripts.
  * This ensures the native host uses the same Node.js version that was used during installation,
- * avoiding NODE_MODULE_VERSION mismatch errors with native modules like better-sqlite3.
+ *.
  *
  * @param distDir - The dist directory where node_path.txt should be written
  * @param nodeExecPath - The Node.js executable path to write (defaults to current process.execPath)
@@ -387,17 +387,6 @@ export async function tryRegisterUserLevelHost(targetBrowsers?: BrowserType[]): 
   }
 }
 
-// 导入is-admin包（仅在Windows平台使用）
-let isAdmin: () => boolean = () => false;
-if (process.platform === 'win32') {
-  try {
-    isAdmin = require('is-admin');
-  } catch (error) {
-    console.warn('缺少is-admin依赖，Windows平台下可能无法正确检测管理员权限');
-    console.warn(error);
-  }
-}
-
 /**
  * 使用提升权限注册系统级清单
  */
@@ -419,9 +408,8 @@ export async function registerWithElevatedPermissions(): Promise<void> {
     await writeFile(tempManifestPath, JSON.stringify(manifest, null, 2));
 
     // 5. 检测是否已经有管理员权限
-    const isRoot = process.getuid && process.getuid() === 0; // Unix/Linux/Mac
-    const hasAdminRights = process.platform === 'win32' ? isAdmin() : false; // Windows平台检测管理员权限
-    const hasElevatedPermissions = isRoot || hasAdminRights;
+    const isRoot = Boolean(process.getuid && process.getuid() === 0); // Unix/Linux/Mac
+    const hasElevatedPermissions = isRoot;
 
     // 准备命令
     const command =

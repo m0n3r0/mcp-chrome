@@ -1,3 +1,32 @@
 {
-  "extends": "./.wxt/tsconfig.json"
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "types": ["chrome", "wxt/browser"]
+  },
+  "include": [
+    "wxt.config.ts",
+    "env.d.ts",
+    "common/**/*.ts",
+    "utils/cdp-session-manager.ts",
+    "utils/screenshot-context.ts",
+    "shared/selector/**/*.ts",
+    "inject-scripts/**/*.js",
+    "entrypoints/popup/**/*.ts",
+    "entrypoints/popup/**/*.vue",
+    "entrypoints/background/index.ts",
+    "entrypoints/background/native-host.ts",
+    "entrypoints/background/keepalive-manager.ts",
+    "entrypoints/background/tools/index.ts",
+    "entrypoints/background/tools/base-browser.ts",
+    "entrypoints/background/tools/browser/common.ts",
+    "entrypoints/background/tools/browser/computer.ts",
+    "entrypoints/background/tools/browser/dialog.ts",
+    "entrypoints/background/tools/browser/index.ts",
+    "entrypoints/background/tools/browser/interaction.ts",
+    "entrypoints/background/tools/browser/keyboard.ts",
+    "entrypoints/background/tools/browser/read-page.ts",
+    "entrypoints/background/tools/browser/screenshot.ts",
+    "entrypoints/background/tools/browser/web-fetcher.ts"
+  ],
+  "exclude": [".output", "node_modules", "tests", "entrypoints/background/record-replay*", "entrypoints/web-editor-v2*", "utils/semantic*", "utils/vector-database.ts", "utils/content-indexer.ts"]
 }

@@ -1,10 +1,6 @@
 import { defineConfig } from 'wxt';
-import tailwindcss from '@tailwindcss/vite';
 import { config } from 'dotenv';
 import { resolve } from 'path';
-import Icons from 'unplugin-icons/vite';
-import Components from 'unplugin-vue-components/vite';
-import IconsResolver from 'unplugin-icons/resolver';
 
 config({ path: resolve(process.cwd(), '.env') });
 config({ path: resolve(process.cwd(), '.env.local') });
@@ -36,74 +32,16 @@ export default defineConfig({
     default_locale: 'zh_CN',
     name: '__MSG_extensionName__',
     description: '__MSG_extensionDescription__',
-    permissions: [
-      'nativeMessaging',
-      'tabs',
-      'activeTab',
-      'scripting',
-      'contextMenus',
-      'downloads',
-      'webRequest',
-      'webNavigation',
-      'debugger',
-      'history',
-      'bookmarks',
-      'offscreen',
-      'storage',
-      'declarativeNetRequest',
-      'alarms',
-      // Allow programmatic control of Chrome Side Panel
-      'sidePanel',
-    ],
-    host_permissions: ['<all_urls>'],
-    options_ui: {
-      page: 'options.html',
-      open_in_tab: true,
-    },
+    permissions: ['nativeMessaging', 'tabs', 'activeTab', 'scripting', 'debugger', 'storage'],
+    host_permissions: ['http://*/*', 'https://*/*'],
     action: {
       default_popup: 'popup.html',
       default_title: 'Chrome MCP Server',
     },
-    // Chrome Side Panel entry for workflow management
-    // Ref: https://developer.chrome.com/docs/extensions/reference/api/sidePanel
-    side_panel: {
-      default_path: 'sidepanel.html',
-    },
-    // Keyboard shortcuts for quick triggers
-    commands: {
-      // run_quick_trigger_1: {
-      //   suggested_key: { default: 'Ctrl+Shift+1' },
-      //   description: 'Run quick trigger 1',
-      // },
-      // run_quick_trigger_2: {
-      //   suggested_key: { default: 'Ctrl+Shift+2' },
-      //   description: 'Run quick trigger 2',
-      // },
-      // run_quick_trigger_3: {
-      //   suggested_key: { default: 'Ctrl+Shift+3' },
-      //   description: 'Run quick trigger 3',
-      // },
-      // open_workflow_sidepanel: {
-      //   suggested_key: { default: 'Ctrl+Shift+O' },
-      //   description: 'Open workflow sidepanel',
-      // },
-      toggle_web_editor: {
-        suggested_key: { default: 'Ctrl+Shift+O', mac: 'Command+Shift+O' },
-        description: 'Toggle Web Editor mode',
-      },
-      toggle_quick_panel: {
-        suggested_key: { default: 'Ctrl+Shift+U', mac: 'Command+Shift+U' },
-        description: 'Toggle Quick Panel AI Chat',
-      },
-    },
     web_accessible_resources: [
       {
-        resources: [
-          '/models/*', // 允许访问 public/models/ 下的所有文件
-          '/workers/*', // 允许访问 workers 文件
-          '/inject-scripts/*', // 允许内容脚本注入的助手文件
-        ],
-        matches: ['<all_urls>'],
+        resources: ['/inject-scripts/*'],
+        matches: ['http://*/*', 'https://*/*'],
       },
     ],
     // 注意：以下安全策略在开发环境会阻断 dev server 的资源加载，
@@ -114,21 +52,12 @@ export default defineConfig({
           cross_origin_embedder_policy: { value: 'require-corp' as const },
           cross_origin_opener_policy: { value: 'same-origin' as const },
           content_security_policy: {
-            // Allow inline styles injected by Vite (compiled CSS) and data images used in UI thumbnails
-            extension_pages:
-              "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;",
+            extension_pages: "script-src 'self'; object-src 'self'; style-src 'self'; img-src 'self' data:;",
           },
         }),
   },
   vite: (env) => ({
     plugins: [
-      tailwindcss(),
-      // Auto-register SVG icons as Vue components; all icons are bundled locally
-      Components({
-        dts: false,
-        resolvers: [IconsResolver({ prefix: 'i', enabledCollections: ['lucide', 'mdi', 'ri'] })],
-      }) as any,
-      Icons({ compiler: 'vue3', autoInstall: false }) as any,
     ],
     build: {
       // 我们的构建产物需要兼容到es6
@@ -145,7 +74,7 @@ export default defineConfig({
   hooks: {
     'build:publicAssets': async (_, files) => {
       const fs = await import('fs/promises');
-      const staticRoots = ['inject-scripts', 'workers', '_locales'];
+      const staticRoots = ['inject-scripts', '_locales'];
 
       const walk = async (dir: string): Promise<string[]> => {
         const entries = await fs.readdir(dir, { withFileTypes: true });

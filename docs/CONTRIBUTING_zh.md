@@ -173,22 +173,6 @@ git push origin feature/your-feature-name
 
 ## 🔧 开发技巧
 
-### 使用 WASM SIMD
-
-如果您要为 WASM SIMD 包做贡献：
-
-```bash
-cd packages/wasm-simd
-# 如果尚未安装，请安装 Rust 和 wasm-pack
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-cargo install wasm-pack
-
-# 构建 WASM 包
-pnpm build
-
-# 构建的文件将复制到 app/chrome-extension/workers/
-```
-
 ### 调试 Chrome 扩展
 
 - 使用 Chrome DevTools 调试扩展弹窗和后台脚本

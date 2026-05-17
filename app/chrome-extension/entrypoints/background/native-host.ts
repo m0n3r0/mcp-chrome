@@ -2,7 +2,6 @@ import { NativeMessageType } from 'chrome-mcp-shared';
 import { BACKGROUND_MESSAGE_TYPES } from '@/common/message-types';
 import { NATIVE_HOST, STORAGE_KEYS, ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/common/constants';
 import { handleCallTool } from './tools';
-import { listPublished, getFlow } from './record-replay/flow-store';
 import { acquireKeepalive } from './keepalive-manager';
 
 const LOG_PREFIX = '[NativeHost]';
@@ -33,7 +32,6 @@ let manualDisconnect = false;
 interface ServerStatus {
   isRunning: boolean;
   port?: number;
-  authToken?: string;
   lastUpdated: number;
 }
 
@@ -379,40 +377,11 @@ export function connectNativeHost(port: number = NATIVE_HOST.DEFAULT_PORT): bool
             },
           });
         }
-      } else if (message.type === 'rr_list_published_flows' && message.requestId) {
-        const requestId = message.requestId;
-        try {
-          const published = await listPublished();
-          const items = [] as any[];
-          for (const p of published) {
-            const flow = await getFlow(p.id);
-            if (!flow) continue;
-            items.push({
-              id: p.id,
-              slug: p.slug,
-              version: p.version,
-              name: p.name,
-              description: p.description || flow.description || '',
-              variables: flow.variables || [],
-              meta: flow.meta || {},
-            });
-          }
-          nativePort?.postMessage({
-            responseToRequestId: requestId,
-            payload: { status: 'success', items },
-          });
-        } catch (error: any) {
-          nativePort?.postMessage({
-            responseToRequestId: requestId,
-            payload: { status: 'error', error: error?.message || String(error) },
-          });
-        }
       } else if (message.type === NativeMessageType.SERVER_STARTED) {
         const port = message.payload?.port;
         currentServerStatus = {
           isRunning: true,
           port: port,
-          authToken: typeof message.payload?.authToken === 'string' ? message.payload.authToken : undefined,
           lastUpdated: Date.now(),
         };
         await saveServerStatus(currentServerStatus);
@@ -493,16 +462,6 @@ export const initNativeHostListener = () => {
   });
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    // Allow UI to call tools directly
-    if (message && message.type === 'call_tool' && message.name) {
-      handleCallTool({ name: message.name, args: message.args })
-        .then((res) => sendResponse({ success: true, result: res }))
-        .catch((err) =>
-          sendResponse({ success: false, error: err instanceof Error ? err.message : String(err) }),
-        );
-      return true;
-    }
-
     const msgType = typeof message === 'string' ? message : message?.type;
 
     // ENSURE_NATIVE: Trigger ensure without changing autoConnectEnabled
@@ -615,15 +574,5 @@ export const initNativeHostListener = () => {
       return true;
     }
 
-    // Forward file operation messages to native host
-    if (message.type === 'forward_to_native' && message.message) {
-      if (nativePort) {
-        nativePort.postMessage(message.message);
-        sendResponse({ success: true });
-      } else {
-        sendResponse({ success: false, error: 'Native host not connected' });
-      }
-      return true;
-    }
   });
 };

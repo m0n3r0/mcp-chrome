@@ -1,9 +1,8 @@
 import { stdin, stdout } from 'process';
 import { Server } from './server';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { NativeMessageType } from 'chrome-mcp-shared';
 import { TIMEOUTS } from './constant';
-import fileHandler from './file-handler';
 
 interface PendingRequest {
   resolve: (value: any) => void;
@@ -129,9 +128,6 @@ export class NativeMessagingHost {
         case 'ping_from_extension':
           this.sendMessage({ type: 'pong_to_extension' });
           break;
-        case 'file_operation':
-          await this.handleFileOperation(message);
-          break;
         default:
           // Double check when message type is not supported
           if (!message.responseToRequestId) {
@@ -142,45 +138,6 @@ export class NativeMessagingHost {
       }
     } catch (error: any) {
       this.sendError(`Failed to handle directive message: ${error.message}`);
-    }
-  }
-
-  /**
-   * Handle file operations from the extension
-   */
-  private async handleFileOperation(message: any): Promise<void> {
-    try {
-      const result = await fileHandler.handleFileRequest(message.payload);
-
-      if (message.requestId) {
-        // Send response back with the request ID
-        this.sendMessage({
-          type: 'file_operation_response',
-          responseToRequestId: message.requestId,
-          payload: result,
-        });
-      } else {
-        // No request ID, just send result
-        this.sendMessage({
-          type: 'file_operation_result',
-          payload: result,
-        });
-      }
-    } catch (error: any) {
-      const errorResponse = {
-        success: false,
-        error: error.message || 'Unknown error during file operation',
-      };
-
-      if (message.requestId) {
-        this.sendMessage({
-          type: 'file_operation_response',
-          responseToRequestId: message.requestId,
-          error: errorResponse.error,
-        });
-      } else {
-        this.sendError(`File operation failed: ${errorResponse.error}`);
-      }
     }
   }
 
@@ -196,7 +153,7 @@ export class NativeMessagingHost {
     timeoutMs: number = TIMEOUTS.DEFAULT_REQUEST_TIMEOUT,
   ): Promise<any> {
     return new Promise((resolve, reject) => {
-      const requestId = uuidv4(); // Generate unique request ID
+      const requestId = randomUUID(); // Generate unique request ID
 
       const timeoutId = setTimeout(() => {
         this.pendingRequests.delete(requestId); // Remove from Map after timeout
@@ -236,7 +193,7 @@ export class NativeMessagingHost {
 
       this.sendMessage({
         type: NativeMessageType.SERVER_STARTED,
-        payload: { port, authToken: this.associatedServer.getAuthToken() },
+        payload: { port },
       });
     } catch (error: any) {
       this.sendError(`Failed to start server: ${error.message}`);

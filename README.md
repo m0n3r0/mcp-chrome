@@ -69,16 +69,11 @@ npm install -g mcp-chrome-bridge
 pnpm
 
 ```bash
-# Method 1: Enable scripts globally (recommended)
-pnpm config set enable-pre-post-scripts true
-pnpm install -g mcp-chrome-bridge
-
-# Method 2: Manual registration (if postinstall doesn't run)
 pnpm install -g mcp-chrome-bridge
 mcp-chrome-bridge register
 ```
 
-> Note: pnpm v7+ disables postinstall scripts by default for security. The `enable-pre-post-scripts` setting controls whether pre/post install scripts run. If automatic registration fails, use the manual registration command above.
+> Security note: this hardened fork does not run install-time registration hooks. Register the native host explicitly after installation.
 
 3. **Load Chrome Extension**
    - Open Chrome and go to `chrome://extensions/`

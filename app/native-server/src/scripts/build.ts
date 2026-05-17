@@ -19,7 +19,7 @@ console.log('dist 和 dist/logs 目录已创建/确认存在');
 
 // 编译TypeScript
 console.log('编译TypeScript...');
-execSync('tsc', { stdio: 'inherit' });
+execSync(`${process.execPath} ${require.resolve('typescript/bin/tsc')}`, { stdio: 'inherit' });
 
 // 复制配置文件
 console.log('复制配置文件...');
@@ -120,7 +120,7 @@ filesToMakeExecutable.forEach((file) => {
 
 // Write node_path.txt immediately after build to ensure Chrome uses the correct Node.js version.
 // This is critical for development mode where dist is deleted on each rebuild.
-// The file points to the same Node.js that compiled the native modules (better-sqlite3 etc.)
+// The file points to the same Node.js that ran the build
 console.log('写入 node_path.txt...');
 const nodePathFile = path.join(distDir, 'node_path.txt');
 fs.writeFileSync(nodePathFile, process.execPath, 'utf8');
