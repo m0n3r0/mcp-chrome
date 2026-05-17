@@ -17,7 +17,7 @@ import {
 } from 'chrome-mcp-shared';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { AUTH_HEADER, AUTH_SCHEME, AUTH_TOKEN_ENV } from '../server/auth';
+import { AUTH_HEADER, AUTH_SCHEME, AUTH_TOKEN_ENV, getOrCreateAuthToken } from '../server/auth';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -69,7 +69,7 @@ export const ensureMcpClient = async () => {
 
     const config = loadConfig();
     mcpClient = new Client({ name: 'Mcp Chrome Proxy', version: '1.0.0' }, { capabilities: {} });
-    const token = process.env[AUTH_TOKEN_ENV]?.trim() || config.authToken;
+    const token = process.env[AUTH_TOKEN_ENV]?.trim() || config.authToken || getOrCreateAuthToken();
     const requestInit = token
       ? {
           headers: {

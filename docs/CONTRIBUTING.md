@@ -173,22 +173,6 @@ For feature requests, please provide:
 
 ## 🔧 Development Tips
 
-### Using WASM SIMD
-
-If you're contributing to the WASM SIMD package:
-
-```bash
-cd packages/wasm-simd
-# Install Rust and wasm-pack if not already installed
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-cargo install wasm-pack
-
-# Build WASM package
-pnpm build
-
-# The built files will be copied to app/chrome-extension/workers/
-```
-
 ### Debugging Chrome Extension
 
 - Use Chrome DevTools for debugging extension popup and background scripts

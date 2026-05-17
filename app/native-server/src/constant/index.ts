@@ -9,6 +9,17 @@ export enum NATIVE_MESSAGE_TYPE {
 }
 
 export const NATIVE_SERVER_PORT = 12306;
+export const DEFAULT_EXTENSION_ID = 'hbdgbgagpkpjffpklnamcljpakneikee';
+export const CHROME_EXTENSION_ID_ENV = 'CHROME_MCP_EXTENSION_ID';
+
+export function getAllowedExtensionOrigins(): string[] {
+  const raw = process.env[CHROME_EXTENSION_ID_ENV]?.trim() || DEFAULT_EXTENSION_ID;
+  const ids = raw
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+  return ids.flatMap((id) => [`chrome-extension://${id}`, `chrome-extension://${id}/`]);
+}
 
 // Timeout constants (in milliseconds)
 export const TIMEOUTS = {
@@ -21,10 +32,10 @@ export const TIMEOUTS = {
 export const SERVER_CONFIG = {
   HOST: '127.0.0.1',
   /**
-   * CORS origin whitelist - only allow Chrome/Firefox extensions and local debugging.
-   * Use RegExp patterns for extension origins, string for exact match.
+   * CORS origin whitelist - local debugging only; extension origins are checked
+   * against CHROME_MCP_EXTENSION_ID/DEFAULT_EXTENSION_ID at request time.
    */
-  CORS_ORIGIN: [/^chrome-extension:\/\//, /^moz-extension:\/\//, 'http://127.0.0.1'] as const,
+  CORS_ORIGIN: ['http://127.0.0.1'] as const,
   LOGGER_ENABLED: false,
 } as const;
 

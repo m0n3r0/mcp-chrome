@@ -117,8 +117,6 @@ graph TB
 
 - WXT 框架 + Vue 3
 - Chrome 扩展 APIs
-- WebAssembly + SIMD
-- Transformers.js
 
 ### 3. 共享包 (`packages/`)
 
@@ -128,11 +126,6 @@ graph TB
 - 通用接口和工具
 - MCP 协议类型
 
-#### 3.2 WASM SIMD (`packages/wasm-simd/`)
-
-- 基于 Rust 的 SIMD 优化数学函数
-- 使用 Emscripten 编译 WebAssembly
-- 向量运算性能提升 4-8 倍
 
 ## 🔄 数据流
 
@@ -205,28 +198,6 @@ const similarities = await simdMath.batchSimilarity(vectors, query, dimension);
 const matrix = await simdMath.similarityMatrix(vectorsA, vectorsB, dimension);
 ```
 
-### 向量数据库 (hnswlib-wasm)
-
-**特性**：
-
-- **算法**：分层导航小世界 (HNSW)
-- **实现**：WebAssembly 实现接近原生性能
-- **持久化**：IndexedDB 存储，自动清理
-- **可扩展性**：高效处理 10,000+ 文档
-
-**配置**：
-
-```typescript
-const config: VectorDatabaseConfig = {
-  dimension: 384, // 模型嵌入维度
-  maxElements: 10000, // 最大文档数
-  efConstruction: 200, // 构建时精度
-  M: 16, // 连接参数
-  efSearch: 100, // 搜索时精度
-  enableAutoCleanup: true, // 自动清理旧数据
-  maxRetentionDays: 30, // 数据保留期
-};
-```
 
 ## ⚡ 性能优化
 

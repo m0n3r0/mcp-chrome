@@ -117,8 +117,6 @@ graph TB
 
 - WXT Framework + Vue 3
 - Chrome Extension APIs
-- WebAssembly + SIMD
-- Transformers.js
 
 ### 3. Shared Packages (`packages/`)
 
@@ -128,11 +126,6 @@ graph TB
 - Common interfaces and utilities
 - MCP protocol types
 
-#### 3.2 WASM SIMD (`packages/wasm-simd/`)
-
-- Rust-based SIMD-optimized math functions
-- WebAssembly compilation with Emscripten
-- 4-8x performance improvement for vector operations
 
 ## 🔄 Data Flow
 
@@ -206,28 +199,6 @@ const similarities = await simdMath.batchSimilarity(vectors, query, dimension);
 const matrix = await simdMath.similarityMatrix(vectorsA, vectorsB, dimension);
 ```
 
-### Vector Database (hnswlib-wasm)
-
-**Features**:
-
-- **Algorithm**: Hierarchical Navigable Small World (HNSW)
-- **Implementation**: WebAssembly for near-native performance
-- **Persistence**: IndexedDB storage with automatic cleanup
-- **Scalability**: Handles 10,000+ documents efficiently
-
-**Configuration**:
-
-```typescript
-const config: VectorDatabaseConfig = {
-  dimension: 384, // Model embedding dimension
-  maxElements: 10000, // Maximum documents
-  efConstruction: 200, // Build-time accuracy
-  M: 16, // Connectivity parameter
-  efSearch: 100, // Search-time accuracy
-  enableAutoCleanup: true, // Automatic old data removal
-  maxRetentionDays: 30, // Data retention period
-};
-```
 
 ## ⚡ Performance Optimizations
 

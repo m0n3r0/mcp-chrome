@@ -16,6 +16,7 @@ import {
   SERVER_CONFIG,
   HTTP_STATUS,
   ERROR_MESSAGES,
+  getAllowedExtensionOrigins,
 } from '../constant';
 import { NativeMessagingHost } from '../native-messaging-host';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
@@ -25,12 +26,6 @@ import { randomUUID } from 'node:crypto';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { getMcpServer } from '../mcp/mcp-server';
 import { getOrCreateAuthToken, requireLocalAuth } from './auth';
-import { AgentStreamManager } from '../agent/stream-manager';
-import { AgentChatService } from '../agent/chat-service';
-import { CodexEngine } from '../agent/engines/codex';
-import { ClaudeEngine } from '../agent/engines/claude';
-import { closeDb } from '../agent/db';
-import { registerAgentRoutes } from './routes';
 
 // ============================================================
 // Types
@@ -40,14 +35,18 @@ interface ExtensionRequestPayload {
   data?: unknown;
 }
 
-const MCP_TRANSPORT_SECURITY_OPTIONS: Pick<
+function getMcpTransportSecurityOptions(
+  port: number,
+): Pick<
   StreamableHTTPServerTransportOptions,
   'enableDnsRebindingProtection' | 'allowedHosts' | 'allowedOrigins'
-> = {
-  enableDnsRebindingProtection: true,
-  allowedHosts: [`${SERVER_CONFIG.HOST}:${NATIVE_SERVER_PORT}`, SERVER_CONFIG.HOST],
-  allowedOrigins: [],
-};
+> {
+  return {
+    enableDnsRebindingProtection: true,
+    allowedHosts: [`${SERVER_CONFIG.HOST}:${port}`, SERVER_CONFIG.HOST],
+    allowedOrigins: [],
+  };
+}
 
 // ============================================================
 // Server Class
@@ -57,18 +56,11 @@ export class Server {
   private fastify: FastifyInstance;
   public isRunning = false;
   private nativeHost: NativeMessagingHost | null = null;
+  private port: number = NATIVE_SERVER_PORT;
   private transportsMap: Map<string, StreamableHTTPServerTransport | SSEServerTransport> =
     new Map();
-  private agentStreamManager: AgentStreamManager;
-  private agentChatService: AgentChatService;
-
   constructor() {
     this.fastify = Fastify({ logger: SERVER_CONFIG.LOGGER_ENABLED });
-    this.agentStreamManager = new AgentStreamManager();
-    this.agentChatService = new AgentChatService({
-      engines: [new CodexEngine(), new ClaudeEngine()],
-      streamManager: this.agentStreamManager,
-    });
     this.setupPlugins();
     this.setupRoutes();
   }
@@ -92,10 +84,20 @@ export class Server {
         if (!origin) {
           return cb(null, true);
         }
-        // Check if origin matches any pattern in whitelist
-        const allowed = SERVER_CONFIG.CORS_ORIGIN.some((pattern) =>
-          pattern instanceof RegExp ? pattern.test(origin) : origin.startsWith(pattern),
-        );
+        const allowedOrigins = getAllowedExtensionOrigins();
+        let allowed = allowedOrigins.includes(origin);
+        if (!allowed) {
+          try {
+            const originUrl = new URL(origin);
+            allowed =
+              originUrl.protocol === 'http:' &&
+              (SERVER_CONFIG.CORS_ORIGIN as readonly string[]).includes(
+                `${originUrl.protocol}//${originUrl.hostname}`,
+              );
+          } catch {
+            allowed = false;
+          }
+        }
         cb(null, allowed);
       },
       methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
@@ -117,12 +119,6 @@ export class Server {
 
     // Extension communication
     this.setupExtensionRoutes();
-
-    // Agent routes (delegated to separate module)
-    registerAgentRoutes(this.fastify, {
-      streamManager: this.agentStreamManager,
-      chatService: this.agentChatService,
-    });
 
     // MCP routes
     this.setupMcpRoutes();
@@ -246,7 +242,7 @@ export class Server {
       } else if (!sessionId && isInitializeRequest(request.body)) {
         const newSessionId = randomUUID();
         transport = new StreamableHTTPServerTransport({
-          ...MCP_TRANSPORT_SECURITY_OPTIONS,
+          ...getMcpTransportSecurityOptions(this.port),
           sessionIdGenerator: () => newSessionId,
           onsessioninitialized: (initializedSessionId) => {
             if (transport && initializedSessionId === newSessionId) {
@@ -342,6 +338,7 @@ export class Server {
   // ============================================================
 
   public async start(port = NATIVE_SERVER_PORT, nativeHost: NativeMessagingHost): Promise<void> {
+    this.port = port;
     if (!this.nativeHost) {
       this.nativeHost = nativeHost;
     } else if (this.nativeHost !== nativeHost) {
@@ -373,11 +370,9 @@ export class Server {
 
     try {
       await this.fastify.close();
-      closeDb();
       this.isRunning = false;
     } catch (err) {
       this.isRunning = false;
-      closeDb();
       throw err;
     }
   }

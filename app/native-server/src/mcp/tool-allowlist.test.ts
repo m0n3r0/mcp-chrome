@@ -15,26 +15,6 @@ describe('minimal MCP tool allowlist', () => {
     TOOL_NAMES.BROWSER.COMPUTER,
     TOOL_NAMES.BROWSER.SWITCH_TAB,
     TOOL_NAMES.BROWSER.HANDLE_DIALOG,
-    TOOL_NAMES.BROWSER.JAVASCRIPT,
-  ];
-
-  const blockedTools = [
-    TOOL_NAMES.BROWSER.HISTORY,
-    TOOL_NAMES.BROWSER.BOOKMARK_SEARCH,
-    TOOL_NAMES.BROWSER.BOOKMARK_ADD,
-    TOOL_NAMES.BROWSER.BOOKMARK_DELETE,
-    TOOL_NAMES.BROWSER.NETWORK_REQUEST,
-    TOOL_NAMES.BROWSER.NETWORK_CAPTURE,
-    TOOL_NAMES.BROWSER.USERSCRIPT,
-    TOOL_NAMES.BROWSER.FILE_UPLOAD,
-    TOOL_NAMES.BROWSER.HANDLE_DOWNLOAD,
-    TOOL_NAMES.BROWSER.GIF_RECORDER,
-    TOOL_NAMES.BROWSER.PERFORMANCE_START_TRACE,
-    TOOL_NAMES.BROWSER.PERFORMANCE_STOP_TRACE,
-    TOOL_NAMES.BROWSER.PERFORMANCE_ANALYZE_INSIGHT,
-    TOOL_NAMES.RECORD_REPLAY.FLOW_RUN,
-    TOOL_NAMES.RECORD_REPLAY.LIST_PUBLISHED,
-    'flow.some_published_flow',
   ];
 
   test('allows only the minimal browser-driving tools', () => {
@@ -44,8 +24,26 @@ describe('minimal MCP tool allowlist', () => {
     }
   });
 
-  test('blocks high-risk and unused tool surfaces', () => {
-    for (const toolName of blockedTools) {
+  test('blocks removed and unknown tool surfaces by name', () => {
+    for (const toolName of [
+      'chrome_javascript',
+      'chrome_history',
+      'chrome_bookmark_search',
+      'chrome_bookmark_add',
+      'chrome_bookmark_delete',
+      'chrome_network_request',
+      'chrome_network_capture',
+      'chrome_userscript',
+      'chrome_upload_file',
+      'chrome_handle_download',
+      'chrome_gif_recorder',
+      'performance_start_trace',
+      'performance_stop_trace',
+      'performance_analyze_insight',
+      'record_replay_flow_run',
+      'record_replay_list_published',
+      'flow.some_published_flow',
+    ]) {
       expect(isAllowedMcpTool(toolName)).toBe(false);
     }
   });

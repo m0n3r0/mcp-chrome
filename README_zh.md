@@ -67,16 +67,11 @@ npm install -g mcp-chrome-bridge
 pnpm
 
 ```bash
-# 方法1：全局启用脚本（推荐）
-pnpm config set enable-pre-post-scripts true
-pnpm install -g mcp-chrome-bridge
-
-# 方法2：如果 postinstall 没有运行，手动注册
 pnpm install -g mcp-chrome-bridge
 mcp-chrome-bridge register
 ```
 
-> 注意：pnpm v7+ 默认禁用 postinstall 脚本以提高安全性。`enable-pre-post-scripts` 设置控制是否运行 pre/post 安装脚本。如果自动注册失败，请使用上述手动注册命令。
+> 安全说明：此加固分支不会运行安装时注册脚本。安装后请显式注册 Native Messaging 主机。
 
 3. **加载 Chrome 扩展**
    - 打开 Chrome 并访问 `chrome://extensions/`
