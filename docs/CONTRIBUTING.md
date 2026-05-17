@@ -17,10 +17,9 @@ We welcome contributions in many forms:
 
 ### Prerequisites
 
-- **Node.js 20+** and **pnpm or npm** (latest version)
+- **Node.js 20+** and **pnpm 8.15.9**
 - **Chrome/Chromium** browser for testing
 - **Git** for version control
-- **Rust** (for WASM development, optional)
 - **TypeScript** knowledge
 
 ### Development Setup
@@ -35,19 +34,20 @@ cd chrome-mcp-server
 2. **Install dependencies**
 
 ```bash
-pnpm install
+pnpm install --ignore-scripts --frozen-lockfile
 ```
 
-3. **Start the project**
+3. **Build and test**
 
 ```bash
-npm run dev
+pnpm run build
+pm --prefix app/native-server test
 ```
 
 4. **Load the extension in Chrome**
    - Open `chrome://extensions/`
    - Enable "Developer mode"
-   - Click "Load unpacked" and select `your/extension/dist`
+   - Click "Load unpacked" and select `app/chrome-extension/.output/chrome-mv3`
 
 ## 🏗️ Project Structure
 
@@ -55,15 +55,13 @@ npm run dev
 chrome-mcp-server/
 ├── app/
 │   ├── chrome-extension/     # Chrome extension (WXT + Vue 3)
-│   │   ├── entrypoints/      # Background scripts, popup, content scripts
-│   │   ├── utils/            # AI models, vector database, utilities
-│   │   └── workers/          # Web Workers for AI processing
+│   │   ├── entrypoints/      # Background service worker and popup
+│   │   └── inject-scripts/   # Minimal page helpers used by browser-control tools
 │   └── native-server/        # Native messaging server (Fastify + TypeScript)
 │       ├── src/mcp/          # MCP protocol implementation
 │       └── src/server/       # HTTP server and native messaging
 ├── packages/
-│   ├── shared/               # Shared types and utilities
-│   └── wasm-simd/           # SIMD-optimized WebAssembly math functions
+│   └── shared/               # Shared tool names, schemas, and types
 └── docs/                    # Documentation
 ```
 
@@ -106,8 +104,6 @@ class YourNewTool extends BaseBrowserToolExecutor {
 ### Code Style Guidelines
 
 - **TypeScript**: Use strict TypeScript with proper typing
-- **ESLint**: Follow the configured ESLint rules (`pnpm lint`)
-- **Prettier**: Format code with Prettier (`pnpm format`)
 - **Naming**: Use descriptive names and follow existing patterns
 - **Comments**: Add JSDoc comments for public APIs
 - **Error Handling**: Always handle errors gracefully

@@ -8,18 +8,7 @@
     "build:shared": "pnpm --filter chrome-mcp-shared build",
     "build:native": "pnpm --filter mcp-chrome-bridge build",
     "build:extension": "pnpm --filter chrome-mcp-server build",
-    "build": "pnpm -r build",
-    "dev:shared": "pnpm --filter chrome-mcp-shared dev",
-    "dev:native": "pnpm --filter mcp-chrome-bridge dev",
-    "dev:extension": "pnpm --filter chrome-mcp-server dev",
-    "dev": "pnpm --filter chrome-mcp-shared build && pnpm -r --parallel dev",
-    "lint": "pnpm -r lint",
-    "lint:fix": "pnpm -r lint:fix",
-    "format": "pnpm -r format",
-    "clean:dist": "pnpm -r exec rm -rf dist .turbo",
-    "clean:modules": "pnpm -r exec rm -rf node_modules && rm -rf node_modules",
-    "clean": "npm run clean:dist && npm run clean:modules",
-    "typecheck": "pnpm -r exec tsc --noEmit"
+    "build": "pnpm -r build"
   },
   "pnpm": {
     "overrides": {
@@ -28,34 +17,12 @@
       "path-to-regexp": "8.4.0",
       "postcss": "8.5.10",
       "protobufjs": "7.5.5",
-      "qs": "6.14.1",
+      "qs": "6.14.2",
       "uuid": "11.1.1"
     }
   },
   "devDependencies": {
-    "@commitlint/cli": "19.8.1",
-    "@commitlint/config-conventional": "19.8.1",
-    "@eslint/js": "9.39.2",
-    "@typescript-eslint/eslint-plugin": "8.49.0",
-    "@typescript-eslint/parser": "8.49.0",
-    "eslint": "9.39.2",
-    "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-vue": "10.6.2",
-    "globals": "16.5.0",
-    "husky": "9.1.7",
-    "lint-staged": "15.5.2",
-    "prettier": "3.7.4",
-    "typescript": "5.9.3",
-    "typescript-eslint": "8.49.0",
-    "vue-eslint-parser": "10.2.0"
+    "typescript": "5.9.3"
   },
-  "lint-staged": {
-    "**/*.{js,jsx,ts,tsx,vue}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "**/*.{json,md,yaml,html,css}": [
-      "prettier --write"
-    ]
-  }
+  "packageManager": "pnpm@8.15.9"
 }

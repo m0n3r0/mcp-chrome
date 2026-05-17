@@ -17,10 +17,9 @@
 
 ### 环境要求
 
-- **Node.js 20+** 和 **pnpm**（最新版本）
+- **Node.js 20+** 和 **pnpm 8.15.9**
 - **Chrome/Chromium** 浏览器用于测试
 - **Git** 版本控制
-- **Rust**（用于 WASM 开发，可选）
 - **TypeScript** 知识
 
 ### 开发环境设置
@@ -35,19 +34,20 @@ cd chrome-mcp-server
 2. **安装依赖**
 
 ```bash
-pnpm install
+pnpm install --ignore-scripts --frozen-lockfile
 ```
 
-3. **启动项目**
+3. **构建并测试**
 
 ```bash
-npm run dev
+pnpm run build
+pm --prefix app/native-server test
 ```
 
 4. **在 Chrome 中加载扩展**
    - 打开 `chrome://extensions/`
    - 启用"开发者模式"
-   - 点击"加载已解压的扩展程序"，选择 `your/extension/dist`
+   - 点击"加载已解压的扩展程序"，选择 `app/chrome-extension/.output/chrome-mv3`
 
 ## 🏗️ 项目结构
 
@@ -55,15 +55,13 @@ npm run dev
 chrome-mcp-server/
 ├── app/
 │   ├── chrome-extension/     # Chrome 扩展 (WXT + Vue 3)
-│   │   ├── entrypoints/      # 后台脚本、弹窗、内容脚本
-│   │   ├── utils/            # AI 模型、向量数据库、工具
-│   │   └── workers/          # 用于 AI 处理的 Web Workers
+│   │   ├── entrypoints/      # 后台 service worker 和弹窗
+│   │   └── inject-scripts/   # 浏览器控制工具使用的最小页面辅助脚本
 │   └── native-server/        # 原生消息服务器 (Fastify + TypeScript)
 │       ├── src/mcp/          # MCP 协议实现
 │       └── src/server/       # HTTP 服务器和原生消息
 ├── packages/
-│   ├── shared/               # 共享类型和工具
-│   └── wasm-simd/           # SIMD 优化的 WebAssembly 数学函数
+│   └── shared/               # 共享工具名称、schema 和类型
 └── docs/                    # 文档
 ```
 
@@ -106,8 +104,6 @@ class YourNewTool extends BaseBrowserToolExecutor {
 ### 代码风格指南
 
 - **TypeScript**：使用严格的 TypeScript 和适当的类型
-- **ESLint**：遵循配置的 ESLint 规则（`pnpm lint`）
-- **Prettier**：使用 Prettier 格式化代码（`pnpm format`）
 - **命名**：使用描述性名称并遵循现有模式
 - **注释**：为公共 API 添加 JSDoc 注释
 - **错误处理**：始终优雅地处理错误
